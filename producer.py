@@ -10,12 +10,14 @@ client = KafkaClient(hosts='localhost:9092')
 topic = client.topics['movies']
 # using the producer to link to topic
 producer = topic.get_sync_producer()
+#producer = topic.get_producer(delivery_reports=True, min_queued_messages=1)
+
 
 
 # ====== STEP 1 : Get List of movies ============
 print('Step 1: Loading movies list')
 # Get list of moviews
-url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&sort_by=vote_average.desc&api_key={config.Config.API_KEY}&vote_count.gte=100'
+url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&sort_by=vote_average.desc&api_key={config.API_KEY}&vote_count.gte=100'
 
 # Call the API
 print(url_search)
@@ -24,14 +26,15 @@ json_obj = res.json()
 results = json_obj['results']
 
 # Get paginated results from the API
-page = int(json_obj['page'])
+#page = int(json_obj['page'])
+page = 2
 total_pages = int(json_obj['total_pages'])
 i = 1
-for i in range(page, 2):
+for i in range(page, 3):
     movies = []
     # Call >= 2 page
     if (i > 1):
-        url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&  sort_by=vote_average.desc&api_key={config.Config.API_KEY}&vote_count.gte=100'
+        url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&  sort_by=vote_average.desc&api_key={config.API_KEY}&vote_count.gte=100'
         # Add page to get results
         url_search += f'&page={i}'
         res = requests.get(url_search)
@@ -53,7 +56,7 @@ print('Step 2: Loading movies details')
 # Get data for each movie collected
 #movies_list = []
 for m_id in movies:
-    url_search = f'https://api.themoviedb.org/3/movie/{m_id}?api_key={config.Config.API_KEY}'
+    url_search = f'https://api.themoviedb.org/3/movie/{m_id}?api_key={config.API_KEY}'
     res = requests.get(url_search)
     result = res.json()
     movie = {}
@@ -75,3 +78,5 @@ for m_id in movies:
     # Send data to consumer
     message = json.dumps(movie)
     producer.produce(message.encode('ascii'))
+
+producer.stop()

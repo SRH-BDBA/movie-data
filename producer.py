@@ -79,6 +79,8 @@ for m_id in movies:
     movie['status'] = result['status']
     movie['vote_average'] = result['vote_average']
     movie['vote_count'] = result['vote_count']
+    movie['cast'] = result['credits']['cast']
+    movie['crew'] = result['credits']['crew']
     #movies_list.append(movie)
     # Send data to consumer
     message = json.dumps(movie)

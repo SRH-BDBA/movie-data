@@ -61,7 +61,7 @@ print('Step 2: Loading movies details')
 # Get data for each movie collected
 #movies_list = []
 for m_id in movies:
-    url_search = f'https://api.themoviedb.org/3/movie/{m_id}?api_key={config.API_KEY}'
+    url_search = f'https://api.themoviedb.org/3/movie/{m_id}?api_key={config.API_KEY}&append_to_response=credits'
     res = requests.get(url_search)
     result = res.json()
     movie = {}

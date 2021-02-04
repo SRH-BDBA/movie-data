@@ -41,7 +41,6 @@ def getMoviesReleaseYear():
 
 # Function to get top 10 genres
 def getTopGenres(topN=10):
-    # Get the authors who wrote the highest number of books and got the highest rating
     movies = list(collection.aggregate([{"$unwind":"$genres"},{"$group":{"_id":"$genres","avgRuntime":{"$avg":"$runtime"},"noMovies":{"$sum":1},"avgPopularity":{"$avg":"$popularity"},"avgVotesNo":{"$avg":"$vote_count"},"avgBudget":{"$avg":"$budget"},"avgRevenue":{"$avg":"$revenue"},"avgVotes":{"$avg":"$vote_average"}}},{"$sort": {"noMovies":-1,"avgRevenue":-1}}]))
     movies_json = []
     for i in range(topN):
@@ -53,7 +52,8 @@ def getTopGenres(topN=10):
             "avgVotes" : round(movies[i]["avgVotesNo"],3),
             "avgBudget" : round(movies[i]["avgBudget"],3),
             "avgRevenue" : round(movies[i]["avgRevenue"],3),
-            "avgVotes" : round(movies[i]["avgVotes"],3)
+            "avgVotes" : round(movies[i]["avgVotes"],3),
+            "avgProfit": round(movies[i]["avgRevenue"],3) - round(movies[i]["avgBudget"],3)
         }
         movies_json.append(movie_json)
     return movies_json
@@ -122,3 +122,32 @@ def getTopVoteAvg(topN=10):
         movies_json.append(movie_json)
     return movies_json
 
+def getTopGenresByProfit(topN=10):
+    movies = list(collection.aggregate([{"$unwind":"$genres"},{"$group":{"_id":"$genres","noMovies":{"$sum":1},"profit":{"$subtract":["revenue","$budget"]},"avgBudget":{"$avg":"$budget"},"avgRevenue":{"$avg":"$revenue"}}}, {
+     "$addFields":{
+       "profit": { "$subtract": ["$revenue", "$budget"]}
+     }
+  },{"$sort": {"profit":-1,"noMovies":-1}}]))
+    movies_json = []
+    for i in range(topN):
+        movie_json = {
+            "genres" : movies[i]["_id"],
+            "noMovies" : movies[i]["noMovies"],
+            "avgBudget" : round(movies[i]["avgBudget"],3),
+            "avgRevenue" : round(movies[i]["avgRevenue"],3),
+            "profit": round(movies[i]["profit"],3)
+        }
+        movies_json.append(movie_json)
+    return movies_json
+
+def getTopActorsGeneratingHighestRevenue(topN=10):
+    actors = list(collection.aggregate([{"$unwind":"$cast"},{"$group":{"_id":"$cast","noMovies":{"$sum":1},"avgBudget":{"$avg":"$budget"},"avgRevenue":{"$avg":"$revenue"}}},{"$sort": {"noMovies":-1,"avgRevenue":-1}}]))
+    actors_json = []
+    for i in range(topN):
+        movie_json = {
+            "actor": actors[i]["_id"]['name'],
+            "avgRevenue": round(actors[i]["avgRevenue"], 3),
+            "noMovies": actors[i]["noMovies"],
+        }
+        actors_json.append(movie_json)
+    return  actors_json

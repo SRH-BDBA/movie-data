@@ -3,21 +3,19 @@ from pykafka import KafkaClient
 import json
 # import os
 import requests
+import config
 
-tmdb.API_KEY = '77ac0a1314a3ce073d073a61984c1205'
 
-#TODO need to replace these with environment variables
-# tmdb.API_KEY = os.getenv('api-key)
-# topic = os.getenv('topic)
+
 
 # setting up the kafka client
 client = KafkaClient(hosts='localhost:9092')
-topic = client.topics['first_topic']
+topic = client.topics['test5']
 
 # using the producer to link to topic
 producer = topic.get_sync_producer()
 
-url_discover = f'https://api.themoviedb.org/3/discover/movie?api_key={tmdb.API_KEY}'
+url_discover = f'https://api.themoviedb.org/3/discover/movie?api_key={config.API_KEY}'
 movie_list = requests.get(url_discover)
 json_obj = movie_list.json()
 results = json_obj['results']
@@ -35,22 +33,31 @@ for obj in results:
 # ranging over all the movie ids to send data to kafka
 movies = []
 for id in ids:
-    url_movie = f'https://api.themoviedb.org/3/movie/{id}?api_key={tmdb.API_KEY}'
+    url_movie = f'https://api.themoviedb.org/3/movie/{id}?api_key={config.API_KEY}&append_to_response=credits'
     movie_data = requests.get(url_movie)
-    json_obj = movie_data.json()
+    result = movie_data.json()
     movie = {}
-    movie['id'] = id
-    movie['title'] = json_obj['original_title']
-    movie['popularity'] = json_obj['popularity']
-    movie['revenue'] = json_obj['revenue']
-    movie['budget'] = json_obj['budget']
-    movie['genres'] = json_obj['genres']
-    movie['release_date'] = json_obj['release_date']
-    movie['runtime'] = json_obj['runtime']
+    movie['_id'] = str(result['id'])
+    movie['budget'] = result['budget']
+    movie['genres'] = list(map(lambda m: m['name'], result['genres']))
+    movie['original_language'] = result['original_language']
+    movie['original_title'] = result['original_title']
+    movie['popularity'] = result['popularity']
+    movie['production_companies'] = list(map(lambda m: m['name'], result['production_companies']))
+    movie['production_countries'] = list(map(lambda m: m['name'], result['production_countries']))
+    movie['release_date'] = result['release_date']
+    movie['revenue'] = result['revenue']
+    movie['runtime'] = result['runtime']
+    movie['status'] = result['status']
+    movie['vote_average'] = result['vote_average']
+    movie['vote_count'] = result['vote_count']
+    movie['cast'] = result['credits']['cast']
+    movie['crew'] = result['credits']['crew']
     movies.append(movie)
 
 # produce method requires data in bytes, so encoding it and sending
 message = json.dumps(movies)
 producer.produce(message.encode('ascii'))
+print("Count",len(message))
 
 # print(json_obj)

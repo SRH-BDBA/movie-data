@@ -17,7 +17,7 @@ producer = topic.get_sync_producer()
 # ====== STEP 1 : Get List of movies ============
 print('Step 1: Loading movies list')
 # Get list of moviews
-url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&sort_by=vote_average.desc&api_key={config.API_KEY}&vote_count.gte=100'
+url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&sort_by=vote_average.desc&api_key={config.API_KEY}'
 
 # Call the API
 print(url_search)
@@ -26,15 +26,19 @@ json_obj = res.json()
 results = json_obj['results']
 
 # Get paginated results from the API
-#page = int(json_obj['page'])
-page = 2
+page = int(json_obj['page'])
+#page = 2
 total_pages = int(json_obj['total_pages'])
 i = 1
-for i in range(page, 3):
-    movies = []
+
+print('Loading list of movies and getting their ids...')
+
+movies = []
+for i in range(page, total_pages):
+    print(f'Page: {i}')
     # Call >= 2 page
     if (i > 1):
-        url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&  sort_by=vote_average.desc&api_key={config.API_KEY}&vote_count.gte=100'
+        url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&  sort_by=vote_average.desc&api_key={config.API_KEY}'
         # Add page to get results
         url_search += f'&page={i}'
         res = requests.get(url_search)
@@ -45,9 +49,10 @@ for i in range(page, 3):
     for result in results:
         if result['id'] not in movies:
             movies.append(result['id'])
-            print('Movie appended')
+            
 
 # Print results
+print(f'Total movies added: {len(movies)}')
 for m in movies:
     print(m)
 

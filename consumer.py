@@ -18,7 +18,9 @@ client = KafkaClient(hosts='localhost:9092')
 topic = client.topics['movies']
 
 try:
-    consumer = topic.get_simple_consumer(consumer_group='test-consumer-group', auto_offset_reset=OffsetType.LATEST)
+    consumer = topic.get_simple_consumer(
+        consumer_group='test-consumer-group', 
+        auto_offset_reset=OffsetType.LATEST)
     # Process should be listening all the time to receive new messages
     while True:
         for i in consumer:

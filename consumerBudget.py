@@ -11,7 +11,7 @@ conn = config.MONGO_URL
 client = pymongo.MongoClient(conn)
 db = client["movies"]
 collection = db.budget_collection
-
+# List of movies to insert as batch
 movies = []
 # setting up the kafka client
 client = KafkaClient(hosts='localhost:9092')
@@ -39,12 +39,22 @@ try:
                 movie['domesticBudget'] = float(movie['domesticBudget'])
                 movie['worldwideGross'] = float(movie['worldwideGross'])
                 if len(list(collection.find({'title':movie['title']}))) == 0:
-                    collection.insert_one(movie)
-                    print(f"{movie['title']} validated and inserted")
+                    # Add new movie to list
+                    movies.append(movie)
+                    #collection.insert_one(movie)
+                    print(f"{movie['title']} validated and appended")
                 else:
-                    print(f"{movie['title']} validated and NOT inserted")
-                
+                    print(f"{movie['title']} validated and NOT appended")
+            # A possible solution to insert a group of movies   
             else:
+                # verify if there is a list with elements to insert
+                if (len(movies) > 0):
+                    try:
+                        collection.insert_many(movies)
+                        print(f"Successfully inserted {len(movies)} rows!")
+                    except as e:
+                        print('rows not inserted :(')
+                        print(e.message)
                 continue
         
 except KeyboardInterrupt:

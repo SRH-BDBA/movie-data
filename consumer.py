@@ -23,15 +23,29 @@ try:
         auto_offset_reset=OffsetType.LATEST)
     # Process should be listening all the time to receive new messages
     while True:
+        # Validate initial
+        if len(movies) > 0:
+                collection.insert_many(movies)
+                print(f'{len(movies)} records successfully inserted')
+                movies = []
+                continue
+
         for i in consumer:
             if i is not None:
+                if len(movies) == 50:
+                    # Insert multiple records and 
+                    collection.insert_many(movies)
+                    print(f'{len(movies)} records successfully inserted')
+                    movies = []
+
                 data = '{0}'.format(i.value.decode())
                 # get data only in json format and ignore other data
                 try:
                     movie = json.loads(data)
                     print('===== ',movie['original_title'])
                     if len(list(collection.find({'_id':movie['_id']}))) == 0:
-                        collection.insert_one(movie)
+                        #collection.insert_one(movie)
+                        movies.append(movie)
                         print('Movie validated and inserted')
                     else:
                         print('Movie validated and not inserted')
@@ -39,8 +53,6 @@ try:
                     print('Another message that is not a movie')
                     print(data)
                     continue
-            else:
-                continue
         
 except KeyboardInterrupt:
     print('Process stopped')

@@ -17,7 +17,8 @@ producer = topic.get_sync_producer()
 # ====== STEP 1 : Get List of movies ============
 print('Step 1: Loading movies list')
 # Get list of moviews
-
+# Select the year range in which we want to insert movies
+# o.e. from 2000 to 2019
 for i in range(2014,2019, 1):
     release_year = i
     sort_by = 'vote_average.desc'
@@ -31,13 +32,12 @@ for i in range(2014,2019, 1):
 
     # Get paginated results from the API
     page = int(json_obj['page'])
-    #page = 1
+    # Choose only 10 pages of information (consiering each page contains 20 movies)
     total_pages = int(json_obj['total_pages'])
     if total_pages >= 10: 
         total_pages = 10
     #total_pages = 2
     i = 1
-
     print(f"Loading list of movies and getting their ids... Total Pages:{total_pages}")
 
     movies = []

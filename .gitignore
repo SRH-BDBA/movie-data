@@ -1,0 +1,4 @@
+movie-data-env/*
+geckodriver*
+__pycache*
+config.py

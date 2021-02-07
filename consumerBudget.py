@@ -43,8 +43,6 @@ try:
                     print(f'{len(movies)} records successfully inserted')
                     # Empty list or movies
                     movies = []
-
-
                 data = '{0}'.format(i.value.decode())
                 # get data only in json format and ignore other data
                 try:

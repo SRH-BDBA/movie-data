@@ -17,12 +17,8 @@ data = list(collection1.aggregate( [
      "foreignField" : "title",
       "as": "aggregate"
     }
+
   },
-    {
-    "$unwind":{
-        "path": "$aggregate"
-    }
-    }
 ]))
 
 

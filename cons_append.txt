@@ -1,0 +1,1 @@
+* */24 * * * python C:\Users\kasth\PycharmProjects\movie-data/consumer.py

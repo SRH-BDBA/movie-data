@@ -1,5 +1,5 @@
 import config
-import tmdbsimple as tmdb
+from datetime import datetime
 import requests
 import json
 from pykafka import KafkaClient
@@ -60,6 +60,11 @@ print('Step 2: Loading movies details')
 # ====== STEP 2 : Get movies data ============
 # Get data for each movie collected
 #movies_list = []
+
+
+myFile = open('prod_append.txt', 'a')
+myFile.write('\nAccessed on ' + str(datetime.now()))
+
 for m_id in movies:
     url_search = f'https://api.themoviedb.org/3/movie/{m_id}?api_key={config.API_KEY}&append_to_response=credits'
     res = requests.get(url_search)

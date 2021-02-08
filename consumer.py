@@ -5,6 +5,7 @@ import json
 from pykafka import KafkaClient
 from pykafka.common import OffsetType
 import  pymongo
+from datetime import datetime
 
 # Mongo DB connection
 conn = config.MONGO_URL
@@ -16,6 +17,9 @@ movies = []
 # setting up the kafka client
 client = KafkaClient(hosts='localhost:9092')
 topic = client.topics['movies']
+
+myFile = open('cons_append.txt', 'a')
+myFile.write('\nAccessed on ' + str(datetime.now()))
 
 try:
     consumer = topic.get_simple_consumer(
@@ -41,7 +45,8 @@ try:
                     continue
             else:
                 continue
+
         
 except KeyboardInterrupt:
     print('Process stopped')
-    
+

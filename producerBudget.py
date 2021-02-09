@@ -12,8 +12,6 @@ client = KafkaClient(hosts='localhost:9092')
 topic = client.topics['budget']
 producer = topic.get_sync_producer()
 
-
-
 # Open incognito browser tab
 def open_browser():
     # Get geckodriver
@@ -72,14 +70,17 @@ try:
     # Parase the response into a BS object
     soup= bs(html, "html.parser")
     # Get pagination URLS
-    pages = soup.find("div", {"class":"pagination"})
-    i = 1
-    a_links = pages.findAll('a')
-    for link in a_links:
-        print(f"{link['href']} processed ({i} / {len(a_links)})")
-        # Scraping the new link
-        scrapePage("https://www.the-numbers.com"+link['href'], producer)
-        i += 1
+    #pages = soup.find("div", {"class":"pagination"})
+    # Set any multiple of 100 + 1 i.e. 101, 201, 301 ...
+    i = 101
+    #a_links = pages.findAll('a')
+    # Reading movies from 101 to 4901
+    for i in range(i,5000,100):
+        # Web page in the form: https://www.the-numbers.com/movie/budgets/all/101
+        print(f"visiting: {url}/{str(i)}")
+        # Scraping new link
+        scrapePage(f"{url}/{str(i)}", producer)
+        
     print(' ==== Read all pages ====')    
     browser.quit()
 except KeyError as ke:

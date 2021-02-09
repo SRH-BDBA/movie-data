@@ -10,51 +10,58 @@ client = KafkaClient(hosts='localhost:9092')
 topic = client.topics['movies']
 # using the producer to link to topic
 producer = topic.get_sync_producer()
-#producer = topic.get_producer(delivery_reports=True, min_queued_messages=1)
+# producer = topic.get_producer(delivery_reports=True, min_queued_messages=1)
 
 
 
 # ====== STEP 1 : Get List of movies ============
 print('Step 1: Loading movies list')
 # Get list of moviews
-url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&sort_by=vote_average.desc&api_key={config.API_KEY}'
+# Select the year range in which we want to insert movies
+# o.e. from 2000 to 2019
+for i in range(2014,2019, 1):
+    release_year = i
+    sort_by = 'vote_average.desc'
+    url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year={release_year}&sort_by={sort_by}&api_key={config.API_KEY}'
 
-# Call the API
-print(url_search)
-res = requests.get(url_search)
-json_obj = res.json()
-results = json_obj['results']
+    # Call the API
+    print(url_search)
+    res = requests.get(url_search)
+    json_obj = res.json()
+    results = json_obj['results']
 
-# Get paginated results from the API
-page = int(json_obj['page'])
-#page = 2
-total_pages = int(json_obj['total_pages'])
-i = 1
+    # Get paginated results from the API
+    page = int(json_obj['page'])
+    # Choose only 10 pages of information (consiering each page contains 20 movies)
+    total_pages = int(json_obj['total_pages'])
+    if total_pages >= 10: 
+        total_pages = 10
+    #total_pages = 2
+    i = 1
+    print(f"Loading list of movies and getting their ids... Total Pages:{total_pages}")
 
-print('Loading list of movies and getting their ids...')
+    movies = []
+    for i in range(page, total_pages):
+        print(f'Page: {i}')
+        # Call >= 2 page
+        if (i > 1):
+            url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year={release_year}&sort_by={sort_by}&api_key={config.API_KEY}'
+            # Add page to get results
+            url_search += f'&page={i}'
+            res = requests.get(url_search)
+            json_obj = res.json()
+            results = json_obj['results']
+        
+        # Add only unique movies id
+        for result in results:
+            if result['id'] not in movies:
+                movies.append(result['id'])
+                
 
-movies = []
-for i in range(page, total_pages):
-    print(f'Page: {i}')
-    # Call >= 2 page
-    if (i > 1):
-        url_search = f'https://api.themoviedb.org/3/discover/movie?primary_release_year=2020&  sort_by=vote_average.desc&api_key={config.API_KEY}'
-        # Add page to get results
-        url_search += f'&page={i}'
-        res = requests.get(url_search)
-        json_obj = res.json()
-        results = json_obj['results']
-    
-    # Add only unique movies id
-    for result in results:
-        if result['id'] not in movies:
-            movies.append(result['id'])
-            
-
-# Print results
-print(f'Total movies added: {len(movies)}')
-for m in movies:
-    print(m)
+    # Print results
+    print(f'Total movies added: {len(movies)}')
+    for m in movies:
+        print(m)
 
 print('Step 2: Loading movies details')
 # ====== STEP 2 : Get movies data ============
